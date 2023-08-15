@@ -40,3 +40,24 @@ def test_how_many_of_type_exist():
 
     assert how_many_of_my_type_exist(my_class) == 2
     assert how_many_of_my_type_exist(my_class_v2) == 2
+
+
+def test_all_scope_name():
+    def f1(a):
+        return get_name_in_all_scope(a)
+
+    def f2(b):
+        return f1(b)
+
+    def f3(c):
+        return f2(c)
+
+    def f4(d):
+        return f3(d)
+
+    names = f4(1)
+    assert names[3] == "d"
+    assert names[2] == "c"
+    assert names[1] == "b"
+    assert names[0] == "a"
+

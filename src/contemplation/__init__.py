@@ -10,4 +10,4 @@ from .execution_introspections import (
     ExecutionTimer,
 )
 
-from .type_introspections import _shallow_is_of_type, _deep_is_of_type, strict_typing
+from .type_introspections import _shallow_is_of_type, _deep_is_of_type, type_enforced

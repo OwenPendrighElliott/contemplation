@@ -4,6 +4,15 @@ from typing import Callable, Any, get_args, get_origin, Iterable, Generator
 
 
 def _shallow_is_of_type(parameter: object, parameter_type: type) -> bool:
+    """Check if an object is of a given type, without checking the types of its members
+
+    Args:
+        parameter (object): The parameter to check the type of
+        parameter_type (type): The type that is annotated for the parameter
+
+    Returns:
+        bool: Whether the parameter is of the given type
+    """
     if parameter_type is Any:
         return True
 
@@ -39,6 +48,15 @@ def _shallow_is_of_type(parameter: object, parameter_type: type) -> bool:
 
 
 def _deep_is_of_type(parameter: object, parameter_type: type) -> bool:
+    """Check if an object is of a given type, checking the types of its members
+
+    Args:
+        parameter (object): The parameter to check the type of
+        parameter_type (type): The type that is annotated for the parameter
+
+    Returns:
+        bool: Whether the parameter is of the given type
+    """
     from typing import Union
 
     if parameter_type is Any:
@@ -84,7 +102,18 @@ def _deep_is_of_type(parameter: object, parameter_type: type) -> bool:
     return isinstance(parameter, parameter_type)
 
 
-def strict_typing(func: Callable, deep: bool = True) -> Callable:
+def type_enforced(func: Callable, deep: bool = True) -> Callable:
+    """Decorator that enforces the types of the arguments and return value of a function
+
+    Args:
+        func (Callable): The function to decorate
+        deep (bool, optional): Whether or not the type checking should look at members of the type. Defaults to True.
+
+    Raises:
+        TypeError: An argument or return value does not match the annotations on the function
+    Returns:
+        Callable: The function to enforce type checking on
+    """
     type_checker = _deep_is_of_type if deep else _shallow_is_of_type
     signature = inspect.signature(func)
     parameters = signature.parameters
