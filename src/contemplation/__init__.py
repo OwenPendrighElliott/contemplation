@@ -8,6 +8,13 @@ from .instance_introspections import (
 from .execution_introspections import (
     CallCounter,
     ExecutionTimer,
+    FunctionEvent,
+    FunctionLogger,
 )
 
-from .type_introspections import _shallow_is_of_type, _deep_is_of_type, type_enforced
+from .type_introspections import (
+    _shallow_is_of_type,
+    _deep_is_of_type,
+    type_enforced,
+    introspect_type,
+)

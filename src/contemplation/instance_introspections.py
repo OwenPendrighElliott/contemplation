@@ -69,4 +69,3 @@ def how_many_of_my_type_exist(me: object) -> int:
         int: The number of objects of the same type as me that exist
     """
     return how_many_of_type_exist(type(me))
-

@@ -1,5 +1,6 @@
 import pytest
 import typing
+from typing import List, Dict
 from contemplation import _shallow_is_of_type, _deep_is_of_type, type_enforced
 
 
@@ -268,7 +269,7 @@ def test_typing_deep_is_of_type_callable():
 
 
 def test_type_checking_shallow():
-    @type_enforced
+    @type_enforced(deep=False)
     def test_func(a: int, b: str) -> str:
         return str(a + int(b))
 
@@ -278,7 +279,7 @@ def test_type_checking_shallow():
     except TypeError:
         pytest.fail("Type checking failed unexpectedly for valid input")
 
-    @type_enforced
+    @type_enforced(deep=False)
     def test_func(a: int, b: int) -> str:
         return str(a + int(b))
 
@@ -288,7 +289,7 @@ def test_type_checking_shallow():
     except TypeError:
         assert True
 
-    @type_enforced
+    @type_enforced(deep=False)
     def test_func(a: int, b: str) -> int:
         return str(a + int(b))
 
@@ -297,3 +298,111 @@ def test_type_checking_shallow():
         pytest.fail("Type checking passed unexpectedly for invalid input")
     except TypeError:
         assert True
+
+
+def test_type_checking_shallow_typing():
+    @type_enforced(deep=False)
+    def test_func(a: list) -> int:
+        return int(a[0])
+
+    try:
+        test_func([1, 2, 3])
+        assert True
+    except TypeError:
+        pytest.fail("Type checking failed unexpectedly for valid input")
+
+    try:
+        test_func(2)
+        pytest.fail("Type checking passed unexpectedly for invalid input")
+    except TypeError:
+        assert True
+
+    try:
+        test_func([1, 2, "3"])
+        assert True
+    except TypeError:
+        pytest.fail("Type checking failed unexpectedly for valid input")
+
+
+def test_type_checking_deep():
+    @type_enforced()
+    def test_func(a: int, b: str) -> str:
+        return str(a + int(b))
+
+    try:
+        test_func(1, "2")
+        assert True
+    except TypeError:
+        pytest.fail("Type checking failed unexpectedly for valid input")
+
+    @type_enforced()
+    def test_func(a: int, b: int) -> str:
+        return str(a + int(b))
+
+    try:
+        test_func(1, "2")
+        pytest.fail("Type checking passed unexpectedly for invalid input")
+    except TypeError:
+        assert True
+
+    @type_enforced()
+    def test_func(a: int, b: str) -> int:
+        return str(a + int(b))
+
+    try:
+        test_func(1, "2")
+        pytest.fail("Type checking passed unexpectedly for invalid input")
+    except TypeError:
+        assert True
+
+
+def test_type_checking_deep_typing():
+    @type_enforced()
+    def test_func(a: List[int]) -> int:
+        return sum(a)
+
+    try:
+        test_func([1, 2, 3])
+        assert True
+    except TypeError:
+        pytest.fail("Type checking failed unexpectedly for valid input")
+
+    try:
+        test_func(2)
+        pytest.fail("Type checking passed unexpectedly for invalid input")
+    except TypeError:
+        assert True
+
+    try:
+        test_func([1, 2, "3"])
+        pytest.fail("Type checking passed unexpectedly for invalid input")
+    except TypeError:
+        assert True
+
+    @type_enforced()
+    def test_func(a: Dict[str, List[int]]) -> Dict[str, List[int]]:
+        return a
+
+    try:
+        test_func({"a": [1, 2, 3]})
+        assert True
+    except TypeError:
+        pytest.fail("Type checking failed unexpectedly for valid input")
+
+    try:
+        test_func({"a": [1, 2, "3"]})
+        pytest.fail("Type checking passed unexpectedly for invalid input")
+    except TypeError:
+        assert True
+
+    try:
+        test_func({"a": [1, 2, 3], "b": [1, 2, "3"]})
+        pytest.fail("Type checking passed unexpectedly for invalid input")
+    except TypeError:
+        assert True
+
+    try:
+        test_func({"a": [1, 2, 3], "b": [1, 2, 3]})
+        assert True
+    except TypeError:
+        pytest.fail("Type checking failed unexpectedly for valid input")

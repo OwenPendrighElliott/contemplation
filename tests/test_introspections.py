@@ -38,6 +38,14 @@ def test_how_many_of_type_exist():
 
     assert how_many_of_type_exist(MyClass) == 2
 
+
+def test_how_many_of_my_type_exist():
+    class MyClass:
+        pass
+
+    my_class = MyClass()
+    my_class_v2 = MyClass()
+
     assert how_many_of_my_type_exist(my_class) == 2
     assert how_many_of_my_type_exist(my_class_v2) == 2
 
@@ -60,4 +68,3 @@ def test_all_scope_name():
     assert names[2] == "c"
     assert names[1] == "b"
     assert names[0] == "a"
-
