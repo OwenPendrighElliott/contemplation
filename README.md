@@ -233,9 +233,28 @@ print(test_func(d))
 # this fails
 d = {"a": [1, 2, 3], "b": [4, 5, "6"]}
 print(test_func(d))
+```
 
+A failed type check will print a detailed specification of the type that was received.
 
 ```
+TypeError: Argument 'd' for function 'test_func' must be of type typing.Dict[str, typing.List[int]], instead type typing.Dict[str, typing.Union[typing.List[typing.Union[int, str]], typing.List[int]]] was passed
+```
+
+You can also get this type information directly for any object:
+
+```python
+from contemplation import introspect_type
+
+my_dict = {"a": [1, 2, 3], "b": [4, 5, 6]}
+
+print(introspect_type(my_dict))
+```
+
+This will print `typing.Dict[str, typing.List[int]]`.
+
+The type introspection occurs recursively for arbitrarily complex objects.
+
 # Documentation
 
 Documentation is located at `docs/index.html`.

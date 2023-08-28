@@ -10,6 +10,9 @@ from typing import (
     Union,
     Dict,
     List,
+    Tuple,
+    Set,
+    FrozenSet,
 )
 
 
@@ -34,6 +37,30 @@ def introspect_type(obj: Any) -> Any:
             else _make_union(element_types)
         )
         return List[element_type]
+    elif isinstance(obj, tuple):
+        element_types = {introspect_type(element) for element in obj}
+        element_type = (
+            element_types.pop()
+            if len(element_types) == 1
+            else _make_union(element_types)
+        )
+        return Tuple[element_type]
+    elif isinstance(obj, set):
+        element_types = {introspect_type(element) for element in obj}
+        element_type = (
+            element_types.pop()
+            if len(element_types) == 1
+            else _make_union(element_types)
+        )
+        return Set[element_type]
+    elif isinstance(obj, frozenset):
+        element_types = {introspect_type(element) for element in obj}
+        element_type = (
+            element_types.pop()
+            if len(element_types) == 1
+            else _make_union(element_types)
+        )
+        return FrozenSet[element_type]
 
     return type(obj)
 

@@ -1,6 +1,6 @@
 import pytest
 import typing
-from typing import List, Dict
+from typing import List, Dict, Union
 from contemplation import _shallow_is_of_type, _deep_is_of_type, type_enforced
 
 
@@ -396,7 +396,7 @@ def test_type_checking_deep_typing():
         assert True
 
     try:
-        test_func({"a": [1, 2, 3], "b": [1, 2, "3"]})
+        test_func({"a": [1, "2", 3], "b": [1, 2, "3"]})
         pytest.fail("Type checking passed unexpectedly for invalid input")
     except TypeError:
         assert True
@@ -406,3 +406,19 @@ def test_type_checking_deep_typing():
         assert True
     except TypeError:
         pytest.fail("Type checking failed unexpectedly for valid input")
+
+    @type_enforced()
+    def test_func_2(a: Dict[str, List[Union[str, int]]]) -> int:
+        return 5
+
+    try:
+        test_func_2({"a": [1, "2", 3], "b": [1, 2, "3"]})
+        assert True
+    except TypeError:
+        pytest.fail("Type checking passed unexpectedly for invalid input")
+
+    try:
+        test_func_2({"a": [1, "2", [3, 2]], "b": [1, 2, "3"]})
+        pytest.fail("Type checking passed unexpectedly for invalid input")
+    except TypeError:
+        assert True
