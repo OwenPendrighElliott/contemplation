@@ -3,7 +3,7 @@ name: test
 on:
   push:
     branches:
-    - main
+      - main
   pull_request:
 
 concurrency:
@@ -11,12 +11,12 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  PYTHONUNBUFFERED: "1"
-  FORCE_COLOR: "1"
+  PYTHONUNBUFFERED: 1
+  FORCE_COLOR: 1
 
 jobs:
   run:
-    name: Python ${{ matrix.python-version }} on ${{ startsWith(matrix.os, 'macos-') && 'macOS' || startsWith(matrix.os, 'windows-') && 'Windows' || 'Linux' }}
+    name: Python ${{ matrix.python-version }} on ${{ matrix.os == 'macos-latest' && 'macOS' || matrix.os == 'windows-latest' && 'Windows' || 'Linux' }}
     runs-on: ${{ matrix.os }}
 
     strategy:
@@ -26,36 +26,23 @@ jobs:
         python-version: ['3.10', '3.11']
 
     steps:
-    - name: Support longpaths
+    - run: git config --system core.longpaths true
       if: matrix.os == 'windows-latest'
-      run: git config --system core.longpaths true
 
     - uses: actions/checkout@v3
 
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v4
+    - uses: actions/setup-python@v3
       with:
         python-version: ${{ matrix.python-version }}
 
-    - name: Install PyTest
-      run: pip install --upgrade pytest
+    - run: pip install --upgrade pytest black ruff
 
-    - name: Install Black
-      run: pip install --upgrade black
+    - run: pip install -e .
 
-    - name: Install Ruff
-      run: pip install --upgrade ruff
+    - run: black --check .
+      if: matrix.python-version == '3.10' && matrix.os == 'ubuntu-latest'
 
-    - name: Install package
-      run: pip install -e .
+    - run: ruff --ignore E501
+      if: matrix.python-version == '3.10' && matrix.os == 'ubuntu-latest'
 
-    - name: Lint Black
-      if: matrix.python-version == '3.9' && runner.os == 'Linux'
-      run: black --check .
-
-    - name: Lint Ruff
-      if: matrix.python-version == '3.9' && runner.os == 'Linux'
-      run: ruff --ignore E501 .
-
-    - name: Test
-      run: pytest
+    - run: pytest
