@@ -40,12 +40,17 @@ from .execution_introspections import (
     FunctionLogger,
 )
 
-from .type_introspections import (
-    _shallow_is_of_type,
-    _deep_is_of_type,
-    type_enforced,
-    introspect_type,
-)</code></pre>
+
+__all__ = [
+    &#34;how_many_of_my_type_exist&#34;,
+    &#34;how_many_of_type_exist&#34;,
+    &#34;get_name_in_caller_scope&#34;,
+    &#34;get_name_in_all_scope&#34;,
+    &#34;CallCounter&#34;,
+    &#34;ExecutionTimer&#34;,
+    &#34;FunctionEvent&#34;,
+    &#34;FunctionLogger&#34;,
+]</code></pre>
 </details>
 </section>
 <section>
@@ -55,11 +60,11 @@ from .type_introspections import (
 <dd>
 <div class="desc"></div>
 </dd>
-<dt><code class="name"><a title="contemplation.instance_introspections" href="instance_introspections.html">contemplation.instance_introspections</a></code></dt>
+<dt><code class="name"><a title="contemplation.experimental" href="experimental/index.html">contemplation.experimental</a></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt><code class="name"><a title="contemplation.type_introspections" href="type_introspections.html">contemplation.type_introspections</a></code></dt>
+<dt><code class="name"><a title="contemplation.instance_introspections" href="instance_introspections.html">contemplation.instance_introspections</a></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -68,8 +73,1003 @@ from .type_introspections import (
 <section>
 </section>
 <section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="contemplation.get_name_in_all_scope"><code class="name flex">
+<span>def <span class="ident">get_name_in_all_scope</span></span>(<span>me: object) ‑> List[str]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Get the name of an object in all parent scopes</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>me</code></strong> :&ensp;<code>object</code></dt>
+<dd>The object to get the names of</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>List[str]</code></dt>
+<dd>The names of the object in all parent scopes</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_name_in_all_scope(me: object) -&gt; List[str]:
+    &#34;&#34;&#34;Get the name of an object in all parent scopes
+
+    Args:
+        me (object): The object to get the names of
+
+    Returns:
+        List[str]: The names of the object in all parent scopes
+    &#34;&#34;&#34;
+    names = []
+    frame = inspect.currentframe().f_back  # Start with the caller&#39;s frame
+
+    while frame:
+        local_vars = frame.f_locals
+        names += [name for name, var in local_vars.items() if var is me]
+        frame = frame.f_back  # Move to the previous frame
+
+    return names</code></pre>
+</details>
+</dd>
+<dt id="contemplation.get_name_in_caller_scope"><code class="name flex">
+<span>def <span class="ident">get_name_in_caller_scope</span></span>(<span>me: object) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Get the name of an object in the caller's local scope</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>me</code></strong> :&ensp;<code>object</code></dt>
+<dd>The object to get the name of</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>ValueError</code></dt>
+<dd>If the object is not found in the caller's local scope</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>str</code></dt>
+<dd>The name of the object in the caller's local scope</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_name_in_caller_scope(me: object) -&gt; str:
+    &#34;&#34;&#34;Get the name of an object in the caller&#39;s local scope
+
+    Args:
+        me (object): The object to get the name of
+
+    Raises:
+        ValueError: If the object is not found in the caller&#39;s local scope
+
+    Returns:
+        str: The name of the object in the caller&#39;s local scope
+    &#34;&#34;&#34;
+    frame = (
+        inspect.currentframe().f_back.f_back
+    )  # Two steps back to get to the caller&#39;s scope
+    local_vars = frame.f_locals
+    names = [name for name, var in local_vars.items() if var is me]
+
+    if names:
+        return names[0]
+    else:
+        raise ValueError(&#34;Object not found in caller&#39;s local scope&#34;)</code></pre>
+</details>
+</dd>
+<dt id="contemplation.how_many_of_my_type_exist"><code class="name flex">
+<span>def <span class="ident">how_many_of_my_type_exist</span></span>(<span>me: object) ‑> int</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Count how many objects of the same type as me exist</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>me</code></strong> :&ensp;<code>object</code></dt>
+<dd>The object to count the type of</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>int</code></dt>
+<dd>The number of objects of the same type as me that exist</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def how_many_of_my_type_exist(me: object) -&gt; int:
+    &#34;&#34;&#34;Count how many objects of the same type as me exist
+
+    Args:
+        me (object): The object to count the type of
+
+    Returns:
+        int: The number of objects of the same type as me that exist
+    &#34;&#34;&#34;
+    return how_many_of_type_exist(type(me))</code></pre>
+</details>
+</dd>
+<dt id="contemplation.how_many_of_type_exist"><code class="name flex">
+<span>def <span class="ident">how_many_of_type_exist</span></span>(<span>cls: type) ‑> int</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Count how many objects of a given type exist</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>cls</code></strong> :&ensp;<code>type</code></dt>
+<dd>The type to count</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>int</code></dt>
+<dd>The number of objects of the given type that exist</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def how_many_of_type_exist(cls: type) -&gt; int:
+    &#34;&#34;&#34;Count how many objects of a given type exist
+
+    Args:
+        cls (type): The type to count
+
+    Returns:
+        int: The number of objects of the given type that exist
+    &#34;&#34;&#34;
+    return sum(isinstance(obj, cls) for obj in gc.get_objects())</code></pre>
+</details>
+</dd>
+</dl>
 </section>
 <section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="contemplation.CallCounter"><code class="flex name class">
+<span>class <span class="ident">CallCounter</span></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class CallCounter:
+    def __init__(self):
+        self.counts: Dict[str, int] = defaultdict(int)
+
+    def count_calls(self, func: Callable) -&gt; Callable:
+        &#34;&#34;&#34;Count the number of times a function has been called
+
+        Args:
+            func (Callable): The function to count calls for
+
+        Returns:
+            Callable: The wrapped function
+
+        Examples:
+            &gt;&gt;&gt; call_counter = CallCounter()
+            &gt;&gt;&gt; @call_counter.count_calls
+            ... def my_func(a: int, b: int):
+            ...     return a + b
+            &gt;&gt;&gt; for i in range(100):
+            ...     my_func(i, i + 1)
+            &gt;&gt;&gt; call_counter.get_count(my_func)
+            100
+        &#34;&#34;&#34;
+
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            name = func.__name__
+            self.counts[name] += 1
+            return func(*args, **kwargs)
+
+        return wrapper
+
+    def get_counts(self) -&gt; Dict[str, int]:
+        &#34;&#34;&#34;Get the counts of all functions that have been counted
+
+        Returns:
+            Dict[str, int]: A dictionary of function names to their counts
+        &#34;&#34;&#34;
+        return dict(self.counts)
+
+    def get_count(self, func: Union[Callable, str]) -&gt; int:
+        &#34;&#34;&#34;Get the count of a specific function
+
+        Args:
+            func (Union[Callable, str]): The function to get the count for, as an instance of the function or the name of the function
+
+        Returns:
+            int: The number of times the function has been called
+        &#34;&#34;&#34;
+        if isinstance(func, str):
+            name = func
+        else:
+            name = func.__name__
+        return self.counts[name]
+
+    def pretty_print_counts(self) -&gt; None:
+        &#34;&#34;&#34;Print the counts of all functions that have been counted&#34;&#34;&#34;
+        name_width = max(len(name) for name in self.counts.keys())
+        count_width = max(len(str(count)) for count in self.counts.values())
+        name_width = max(name_width, len(&#34;Function&#34;))
+        count_width = max(count_width, len(&#34;Count&#34;))
+
+        print(f&#34;{&#39;Function&#39;:&lt;{name_width}} | {&#39;Count&#39;:&lt;{count_width}}&#34;)
+        print(&#34;-&#34; * (name_width + count_width + 3))
+        for name, count in self.counts.items():
+            print(f&#34;{name:&lt;{name_width}} | {count:&lt;{count_width}}&#34;)</code></pre>
+</details>
+<h3>Methods</h3>
+<dl>
+<dt id="contemplation.CallCounter.count_calls"><code class="name flex">
+<span>def <span class="ident">count_calls</span></span>(<span>self, func: Callable) ‑> Callable</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Count the number of times a function has been called</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>func</code></strong> :&ensp;<code>Callable</code></dt>
+<dd>The function to count calls for</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>Callable</code></dt>
+<dd>The wrapped function</dd>
+</dl>
+<h2 id="examples">Examples</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; call_counter = CallCounter()
+&gt;&gt;&gt; @call_counter.count_calls
+... def my_func(a: int, b: int):
+...     return a + b
+&gt;&gt;&gt; for i in range(100):
+...     my_func(i, i + 1)
+&gt;&gt;&gt; call_counter.get_count(my_func)
+100
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def count_calls(self, func: Callable) -&gt; Callable:
+    &#34;&#34;&#34;Count the number of times a function has been called
+
+    Args:
+        func (Callable): The function to count calls for
+
+    Returns:
+        Callable: The wrapped function
+
+    Examples:
+        &gt;&gt;&gt; call_counter = CallCounter()
+        &gt;&gt;&gt; @call_counter.count_calls
+        ... def my_func(a: int, b: int):
+        ...     return a + b
+        &gt;&gt;&gt; for i in range(100):
+        ...     my_func(i, i + 1)
+        &gt;&gt;&gt; call_counter.get_count(my_func)
+        100
+    &#34;&#34;&#34;
+
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        name = func.__name__
+        self.counts[name] += 1
+        return func(*args, **kwargs)
+
+    return wrapper</code></pre>
+</details>
+</dd>
+<dt id="contemplation.CallCounter.get_count"><code class="name flex">
+<span>def <span class="ident">get_count</span></span>(<span>self, func: Union[Callable, str]) ‑> int</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Get the count of a specific function</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>func</code></strong> :&ensp;<code>Union[Callable, str]</code></dt>
+<dd>The function to get the count for, as an instance of the function or the name of the function</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>int</code></dt>
+<dd>The number of times the function has been called</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_count(self, func: Union[Callable, str]) -&gt; int:
+    &#34;&#34;&#34;Get the count of a specific function
+
+    Args:
+        func (Union[Callable, str]): The function to get the count for, as an instance of the function or the name of the function
+
+    Returns:
+        int: The number of times the function has been called
+    &#34;&#34;&#34;
+    if isinstance(func, str):
+        name = func
+    else:
+        name = func.__name__
+    return self.counts[name]</code></pre>
+</details>
+</dd>
+<dt id="contemplation.CallCounter.get_counts"><code class="name flex">
+<span>def <span class="ident">get_counts</span></span>(<span>self) ‑> Dict[str, int]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Get the counts of all functions that have been counted</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>Dict[str, int]</code></dt>
+<dd>A dictionary of function names to their counts</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_counts(self) -&gt; Dict[str, int]:
+    &#34;&#34;&#34;Get the counts of all functions that have been counted
+
+    Returns:
+        Dict[str, int]: A dictionary of function names to their counts
+    &#34;&#34;&#34;
+    return dict(self.counts)</code></pre>
+</details>
+</dd>
+<dt id="contemplation.CallCounter.pretty_print_counts"><code class="name flex">
+<span>def <span class="ident">pretty_print_counts</span></span>(<span>self) ‑> None</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Print the counts of all functions that have been counted</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def pretty_print_counts(self) -&gt; None:
+    &#34;&#34;&#34;Print the counts of all functions that have been counted&#34;&#34;&#34;
+    name_width = max(len(name) for name in self.counts.keys())
+    count_width = max(len(str(count)) for count in self.counts.values())
+    name_width = max(name_width, len(&#34;Function&#34;))
+    count_width = max(count_width, len(&#34;Count&#34;))
+
+    print(f&#34;{&#39;Function&#39;:&lt;{name_width}} | {&#39;Count&#39;:&lt;{count_width}}&#34;)
+    print(&#34;-&#34; * (name_width + count_width + 3))
+    for name, count in self.counts.items():
+        print(f&#34;{name:&lt;{name_width}} | {count:&lt;{count_width}}&#34;)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="contemplation.ExecutionTimer"><code class="flex name class">
+<span>class <span class="ident">ExecutionTimer</span></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class ExecutionTimer:
+    def __init__(self):
+        self.times = defaultdict(list)
+        self.total_execution_times = defaultdict(float)
+
+    def time_execution(self, func: Callable) -&gt; Callable:
+        &#34;&#34;&#34;A decorator to time the execution of a function
+
+        Args:
+            func (Callable): The function to time
+
+        Returns:
+            Callable: The wrapped function
+
+        Examples:
+            &gt;&gt;&gt; execution_timer = ExecutionTimer()
+            &gt;&gt;&gt; @execution_timer.time_execution
+            ... def my_func(a: int, b: int):
+            ...     return a + b
+            &gt;&gt;&gt; for i in range(100):
+            ...     my_func(i, i + 1)
+            &gt;&gt;&gt; execution_timer.get_execution_time(my_func)
+            0.000123456789
+        &#34;&#34;&#34;
+
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            name = func.__name__
+            start_time = time.perf_counter()
+            result = func(*args, **kwargs)
+            elapsed_time = time.perf_counter() - start_time
+            self.times[name].append(elapsed_time)
+            self.total_execution_times[name] += elapsed_time
+            return result
+
+        return wrapper
+
+    def get_execution_times(self) -&gt; Dict[str, float]:
+        &#34;&#34;&#34;Get the execution times of all functions that have been timed
+
+        Returns:
+            Dict[str, float]: A dictionary of function names to their execution times
+        &#34;&#34;&#34;
+        return dict(self.total_execution_times)
+
+    def get_execution_time(self, func: Union[Callable, str]) -&gt; float:
+        &#34;&#34;&#34;Get the execution time of a specific function
+
+        Args:
+            func (Union[Callable, str]): The function to get the execution time for, as an instance of the function or the name of the function
+
+        Returns:
+            float: The execution time of the function
+        &#34;&#34;&#34;
+        if isinstance(func, str):
+            name = func
+        else:
+            name = func.__name__
+        return self.total_execution_times[name]
+
+    def pretty_print_times(self) -&gt; None:
+        &#34;&#34;&#34;Print the execution times of all functions that have been timed&#34;&#34;&#34;
+        avg_times = [
+            self.total_execution_times[name] / len(self.times[name])
+            for name in self.total_execution_times.keys()
+        ]
+        name_width = max(len(name) for name in self.total_execution_times.keys())
+        time_width = max(
+            len(f&#34;{time:.6f}&#34;) for time in self.total_execution_times.values()
+        )
+
+        avg_time_width = max(len(f&#34;{avg_time:.6f}&#34;) for avg_time in avg_times)
+
+        name_width = max(name_width, len(&#34;Function&#34;))
+        time_width = max(time_width, len(&#34;Total Time (s)&#34;))
+        avg_time_width = max(avg_time_width, len(&#34;Average Time (s)&#34;))
+
+        print(
+            f&#34;{&#39;Function&#39;:&lt;{name_width}} | {&#39;Total Time (s)&#39;:&lt;{time_width}} | {&#39;Average Time (s)&#39;:&lt;{avg_time_width}}&#34;
+        )
+        print(&#34;-&#34; * (name_width + time_width + avg_time_width + 6))
+        for idx, (name, total_time) in enumerate(self.total_execution_times.items()):
+            avg_time = avg_times[idx]
+            print(
+                f&#34;{name:&lt;{name_width}} | {total_time:&lt;{time_width}.6f} | {avg_time:&lt;{avg_time_width}.6f}&#34;
+            )</code></pre>
+</details>
+<h3>Methods</h3>
+<dl>
+<dt id="contemplation.ExecutionTimer.get_execution_time"><code class="name flex">
+<span>def <span class="ident">get_execution_time</span></span>(<span>self, func: Union[Callable, str]) ‑> float</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Get the execution time of a specific function</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>func</code></strong> :&ensp;<code>Union[Callable, str]</code></dt>
+<dd>The function to get the execution time for, as an instance of the function or the name of the function</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd>The execution time of the function</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_execution_time(self, func: Union[Callable, str]) -&gt; float:
+    &#34;&#34;&#34;Get the execution time of a specific function
+
+    Args:
+        func (Union[Callable, str]): The function to get the execution time for, as an instance of the function or the name of the function
+
+    Returns:
+        float: The execution time of the function
+    &#34;&#34;&#34;
+    if isinstance(func, str):
+        name = func
+    else:
+        name = func.__name__
+    return self.total_execution_times[name]</code></pre>
+</details>
+</dd>
+<dt id="contemplation.ExecutionTimer.get_execution_times"><code class="name flex">
+<span>def <span class="ident">get_execution_times</span></span>(<span>self) ‑> Dict[str, float]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Get the execution times of all functions that have been timed</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>Dict[str, float]</code></dt>
+<dd>A dictionary of function names to their execution times</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_execution_times(self) -&gt; Dict[str, float]:
+    &#34;&#34;&#34;Get the execution times of all functions that have been timed
+
+    Returns:
+        Dict[str, float]: A dictionary of function names to their execution times
+    &#34;&#34;&#34;
+    return dict(self.total_execution_times)</code></pre>
+</details>
+</dd>
+<dt id="contemplation.ExecutionTimer.pretty_print_times"><code class="name flex">
+<span>def <span class="ident">pretty_print_times</span></span>(<span>self) ‑> None</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Print the execution times of all functions that have been timed</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def pretty_print_times(self) -&gt; None:
+    &#34;&#34;&#34;Print the execution times of all functions that have been timed&#34;&#34;&#34;
+    avg_times = [
+        self.total_execution_times[name] / len(self.times[name])
+        for name in self.total_execution_times.keys()
+    ]
+    name_width = max(len(name) for name in self.total_execution_times.keys())
+    time_width = max(
+        len(f&#34;{time:.6f}&#34;) for time in self.total_execution_times.values()
+    )
+
+    avg_time_width = max(len(f&#34;{avg_time:.6f}&#34;) for avg_time in avg_times)
+
+    name_width = max(name_width, len(&#34;Function&#34;))
+    time_width = max(time_width, len(&#34;Total Time (s)&#34;))
+    avg_time_width = max(avg_time_width, len(&#34;Average Time (s)&#34;))
+
+    print(
+        f&#34;{&#39;Function&#39;:&lt;{name_width}} | {&#39;Total Time (s)&#39;:&lt;{time_width}} | {&#39;Average Time (s)&#39;:&lt;{avg_time_width}}&#34;
+    )
+    print(&#34;-&#34; * (name_width + time_width + avg_time_width + 6))
+    for idx, (name, total_time) in enumerate(self.total_execution_times.items()):
+        avg_time = avg_times[idx]
+        print(
+            f&#34;{name:&lt;{name_width}} | {total_time:&lt;{time_width}.6f} | {avg_time:&lt;{avg_time_width}.6f}&#34;
+        )</code></pre>
+</details>
+</dd>
+<dt id="contemplation.ExecutionTimer.time_execution"><code class="name flex">
+<span>def <span class="ident">time_execution</span></span>(<span>self, func: Callable) ‑> Callable</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A decorator to time the execution of a function</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>func</code></strong> :&ensp;<code>Callable</code></dt>
+<dd>The function to time</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>Callable</code></dt>
+<dd>The wrapped function</dd>
+</dl>
+<h2 id="examples">Examples</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; execution_timer = ExecutionTimer()
+&gt;&gt;&gt; @execution_timer.time_execution
+... def my_func(a: int, b: int):
+...     return a + b
+&gt;&gt;&gt; for i in range(100):
+...     my_func(i, i + 1)
+&gt;&gt;&gt; execution_timer.get_execution_time(my_func)
+0.000123456789
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def time_execution(self, func: Callable) -&gt; Callable:
+    &#34;&#34;&#34;A decorator to time the execution of a function
+
+    Args:
+        func (Callable): The function to time
+
+    Returns:
+        Callable: The wrapped function
+
+    Examples:
+        &gt;&gt;&gt; execution_timer = ExecutionTimer()
+        &gt;&gt;&gt; @execution_timer.time_execution
+        ... def my_func(a: int, b: int):
+        ...     return a + b
+        &gt;&gt;&gt; for i in range(100):
+        ...     my_func(i, i + 1)
+        &gt;&gt;&gt; execution_timer.get_execution_time(my_func)
+        0.000123456789
+    &#34;&#34;&#34;
+
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        name = func.__name__
+        start_time = time.perf_counter()
+        result = func(*args, **kwargs)
+        elapsed_time = time.perf_counter() - start_time
+        self.times[name].append(elapsed_time)
+        self.total_execution_times[name] += elapsed_time
+        return result
+
+    return wrapper</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="contemplation.FunctionEvent"><code class="flex name class">
+<span>class <span class="ident">FunctionEvent</span></span>
+<span>(</span><span>function_name: str, start_time: float, end_time: float, function_arguments: Optional[Dict[str, Any]], function_returns: Optional[Any])</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class FunctionEvent:
+    def __init__(
+        self,
+        function_name: str,
+        start_time: float,
+        end_time: float,
+        function_arguments: Optional[Dict[str, Any]],
+        function_returns: Optional[Any],
+    ):
+        self.name = function_name
+        self.start_time = start_time
+        self.end_time = end_time
+        self.duration = end_time - start_time
+        self.function_arguments = function_arguments
+        self.function_returns = function_returns
+
+    def to_dict(self) -&gt; Dict[str, Any]:
+        return {
+            &#34;name&#34;: self.name,
+            &#34;start_time&#34;: self.start_time,
+            &#34;end_time&#34;: self.end_time,
+            &#34;duration&#34;: self.duration,
+            &#34;function_arguments&#34;: self.function_arguments,
+            &#34;function_returns&#34;: self.function_returns,
+        }
+
+    def __repr__(self) -&gt; str:
+        return f&#34;FunctionEvent(name={self.name}, start_time={self.start_time}, end_time={self.end_time}, duration={self.duration}, function_arguments={self.function_arguments}, function_returns={self.function_returns})&#34;</code></pre>
+</details>
+<h3>Methods</h3>
+<dl>
+<dt id="contemplation.FunctionEvent.to_dict"><code class="name flex">
+<span>def <span class="ident">to_dict</span></span>(<span>self) ‑> Dict[str, Any]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_dict(self) -&gt; Dict[str, Any]:
+    return {
+        &#34;name&#34;: self.name,
+        &#34;start_time&#34;: self.start_time,
+        &#34;end_time&#34;: self.end_time,
+        &#34;duration&#34;: self.duration,
+        &#34;function_arguments&#34;: self.function_arguments,
+        &#34;function_returns&#34;: self.function_returns,
+    }</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="contemplation.FunctionLogger"><code class="flex name class">
+<span>class <span class="ident">FunctionLogger</span></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class FunctionLogger:
+    def __init__(self):
+        self.logs: List[FunctionEvent] = []
+        self.grouped_logs: Dict[str, List[FunctionEvent]] = defaultdict(list)
+        self.idx = 0
+
+    def log_function(self, log_args: bool = False, log_returns: bool = False):
+        def decorator(func):
+            @wraps(func)
+            def wrapper(*args, **kwargs):
+                start_time = time.time()
+                result = func(*args, **kwargs)
+                end_time = time.time()
+
+                # Convert args and kwargs into single dict with same order as was passed
+                if log_args:
+                    argspec = inspect.getfullargspec(func)
+                    arg_names = argspec.args
+                    arg_dict = dict(zip(arg_names, args))
+                    arg_dict.update(kwargs)
+                    args = arg_dict
+
+                event = FunctionEvent(
+                    function_name=func.__name__,
+                    start_time=start_time,
+                    end_time=end_time,
+                    function_arguments=args if log_args else None,
+                    function_returns=result if log_returns else None,
+                )
+                self.logs.append(event)
+                self.grouped_logs[func.__name__].append(event)
+                return result
+
+            return wrapper
+
+        return decorator
+
+    def get_logs(self) -&gt; List[FunctionEvent]:
+        &#34;&#34;&#34;Get the logs of all functions that have been logged
+
+        Returns:
+            List[FunctionEvent]: A list of function logs
+        &#34;&#34;&#34;
+        return self.logs
+
+    def get_logs_by_function_name(
+        self, function: Union[Callable, str]
+    ) -&gt; List[FunctionEvent]:
+        &#34;&#34;&#34;Get the logs of a specific function
+
+        Args:
+            function (Union[Callable, str]): The function to get the logs for, as an instance of the function or the name of the function
+
+        Returns:
+            List[FunctionEvent]: A list of function logs
+        &#34;&#34;&#34;
+        if isinstance(function, str):
+            name = function
+        else:
+            name = function.__name__
+        return self.grouped_logs[name]
+
+    def to_dict(self) -&gt; List[Dict[str, Any]]:
+        &#34;&#34;&#34;Get the logs of all functions that have been logged as JSON
+
+        Returns:
+            List[Dict[str, Any]]: A list of function logs as JSON
+        &#34;&#34;&#34;
+        return [log.to_dict() for log in self.logs]
+
+    def write_jsonl(self, path: str) -&gt; None:
+        &#34;&#34;&#34;Write the logs of all functions that have been logged to a JSONL file
+
+        Args:
+            path (str): The path to write the JSONL file to
+        &#34;&#34;&#34;
+        with open(path, &#34;w&#34;) as f:
+            for log in self.logs:
+                f.write(json.dumps(log.to_dict()) + &#34;\n&#34;)
+
+    def pretty_print_logs(self) -&gt; None:
+        &#34;&#34;&#34;Prints the function name, start time, end time, and duration of all logs in a nice table&#34;&#34;&#34;
+        name_width = max(len(log.name) for log in self.logs)
+        time_width = max(len(f&#34;{log.start_time:.6f}&#34;) for log in self.logs)
+        duration_width = max(len(f&#34;{log.duration:.6f}&#34;) for log in self.logs)
+
+        name_width = max(name_width, len(&#34;Function&#34;))
+        time_width = max(time_width, len(&#34;Start Time (s)&#34;))
+        duration_width = max(duration_width, len(&#34;Duration (s)&#34;))
+
+        print(
+            f&#34;{&#39;Function&#39;:&lt;{name_width}} | {&#39;Start Time (s)&#39;:&lt;{time_width}} | {&#39;Duration (s)&#39;:&lt;{duration_width}}&#34;
+        )
+        print(&#34;-&#34; * (name_width + time_width + duration_width + 6))
+        for log in self.logs:
+            print(
+                f&#34;{log.name:&lt;{name_width}} | {log.start_time:&lt;{time_width}.6f} | {log.duration:&lt;{duration_width}.6f}&#34;
+            )
+
+    def __iter__(self):
+        self.idx = 0
+        return self
+
+    def __next__(self):
+        if self.idx &lt; len(self.logs):
+            log = self.logs[self.idx]
+            self.idx += 1
+            return log
+        else:
+            raise StopIteration</code></pre>
+</details>
+<h3>Methods</h3>
+<dl>
+<dt id="contemplation.FunctionLogger.get_logs"><code class="name flex">
+<span>def <span class="ident">get_logs</span></span>(<span>self) ‑> List[<a title="contemplation.execution_introspections.FunctionEvent" href="execution_introspections.html#contemplation.execution_introspections.FunctionEvent">FunctionEvent</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Get the logs of all functions that have been logged</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>List[<a title="contemplation.FunctionEvent" href="#contemplation.FunctionEvent">FunctionEvent</a>]</code></dt>
+<dd>A list of function logs</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_logs(self) -&gt; List[FunctionEvent]:
+    &#34;&#34;&#34;Get the logs of all functions that have been logged
+
+    Returns:
+        List[FunctionEvent]: A list of function logs
+    &#34;&#34;&#34;
+    return self.logs</code></pre>
+</details>
+</dd>
+<dt id="contemplation.FunctionLogger.get_logs_by_function_name"><code class="name flex">
+<span>def <span class="ident">get_logs_by_function_name</span></span>(<span>self, function: Union[Callable, str]) ‑> List[<a title="contemplation.execution_introspections.FunctionEvent" href="execution_introspections.html#contemplation.execution_introspections.FunctionEvent">FunctionEvent</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Get the logs of a specific function</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>function</code></strong> :&ensp;<code>Union[Callable, str]</code></dt>
+<dd>The function to get the logs for, as an instance of the function or the name of the function</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>List[<a title="contemplation.FunctionEvent" href="#contemplation.FunctionEvent">FunctionEvent</a>]</code></dt>
+<dd>A list of function logs</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_logs_by_function_name(
+    self, function: Union[Callable, str]
+) -&gt; List[FunctionEvent]:
+    &#34;&#34;&#34;Get the logs of a specific function
+
+    Args:
+        function (Union[Callable, str]): The function to get the logs for, as an instance of the function or the name of the function
+
+    Returns:
+        List[FunctionEvent]: A list of function logs
+    &#34;&#34;&#34;
+    if isinstance(function, str):
+        name = function
+    else:
+        name = function.__name__
+    return self.grouped_logs[name]</code></pre>
+</details>
+</dd>
+<dt id="contemplation.FunctionLogger.log_function"><code class="name flex">
+<span>def <span class="ident">log_function</span></span>(<span>self, log_args: bool = False, log_returns: bool = False)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def log_function(self, log_args: bool = False, log_returns: bool = False):
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            start_time = time.time()
+            result = func(*args, **kwargs)
+            end_time = time.time()
+
+            # Convert args and kwargs into single dict with same order as was passed
+            if log_args:
+                argspec = inspect.getfullargspec(func)
+                arg_names = argspec.args
+                arg_dict = dict(zip(arg_names, args))
+                arg_dict.update(kwargs)
+                args = arg_dict
+
+            event = FunctionEvent(
+                function_name=func.__name__,
+                start_time=start_time,
+                end_time=end_time,
+                function_arguments=args if log_args else None,
+                function_returns=result if log_returns else None,
+            )
+            self.logs.append(event)
+            self.grouped_logs[func.__name__].append(event)
+            return result
+
+        return wrapper
+
+    return decorator</code></pre>
+</details>
+</dd>
+<dt id="contemplation.FunctionLogger.pretty_print_logs"><code class="name flex">
+<span>def <span class="ident">pretty_print_logs</span></span>(<span>self) ‑> None</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Prints the function name, start time, end time, and duration of all logs in a nice table</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def pretty_print_logs(self) -&gt; None:
+    &#34;&#34;&#34;Prints the function name, start time, end time, and duration of all logs in a nice table&#34;&#34;&#34;
+    name_width = max(len(log.name) for log in self.logs)
+    time_width = max(len(f&#34;{log.start_time:.6f}&#34;) for log in self.logs)
+    duration_width = max(len(f&#34;{log.duration:.6f}&#34;) for log in self.logs)
+
+    name_width = max(name_width, len(&#34;Function&#34;))
+    time_width = max(time_width, len(&#34;Start Time (s)&#34;))
+    duration_width = max(duration_width, len(&#34;Duration (s)&#34;))
+
+    print(
+        f&#34;{&#39;Function&#39;:&lt;{name_width}} | {&#39;Start Time (s)&#39;:&lt;{time_width}} | {&#39;Duration (s)&#39;:&lt;{duration_width}}&#34;
+    )
+    print(&#34;-&#34; * (name_width + time_width + duration_width + 6))
+    for log in self.logs:
+        print(
+            f&#34;{log.name:&lt;{name_width}} | {log.start_time:&lt;{time_width}.6f} | {log.duration:&lt;{duration_width}.6f}&#34;
+        )</code></pre>
+</details>
+</dd>
+<dt id="contemplation.FunctionLogger.to_dict"><code class="name flex">
+<span>def <span class="ident">to_dict</span></span>(<span>self) ‑> List[Dict[str, Any]]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Get the logs of all functions that have been logged as JSON</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>List[Dict[str, Any]]</code></dt>
+<dd>A list of function logs as JSON</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_dict(self) -&gt; List[Dict[str, Any]]:
+    &#34;&#34;&#34;Get the logs of all functions that have been logged as JSON
+
+    Returns:
+        List[Dict[str, Any]]: A list of function logs as JSON
+    &#34;&#34;&#34;
+    return [log.to_dict() for log in self.logs]</code></pre>
+</details>
+</dd>
+<dt id="contemplation.FunctionLogger.write_jsonl"><code class="name flex">
+<span>def <span class="ident">write_jsonl</span></span>(<span>self, path: str) ‑> None</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Write the logs of all functions that have been logged to a JSONL file</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>path</code></strong> :&ensp;<code>str</code></dt>
+<dd>The path to write the JSONL file to</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def write_jsonl(self, path: str) -&gt; None:
+    &#34;&#34;&#34;Write the logs of all functions that have been logged to a JSONL file
+
+    Args:
+        path (str): The path to write the JSONL file to
+    &#34;&#34;&#34;
+    with open(path, &#34;w&#34;) as f:
+        for log in self.logs:
+            f.write(json.dumps(log.to_dict()) + &#34;\n&#34;)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+</dl>
 </section>
 </article>
 <nav id="sidebar">
@@ -81,8 +1081,55 @@ from .type_introspections import (
 <li><h3><a href="#header-submodules">Sub-modules</a></h3>
 <ul>
 <li><code><a title="contemplation.execution_introspections" href="execution_introspections.html">contemplation.execution_introspections</a></code></li>
+<li><code><a title="contemplation.experimental" href="experimental/index.html">contemplation.experimental</a></code></li>
 <li><code><a title="contemplation.instance_introspections" href="instance_introspections.html">contemplation.instance_introspections</a></code></li>
-<li><code><a title="contemplation.type_introspections" href="type_introspections.html">contemplation.type_introspections</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="contemplation.get_name_in_all_scope" href="#contemplation.get_name_in_all_scope">get_name_in_all_scope</a></code></li>
+<li><code><a title="contemplation.get_name_in_caller_scope" href="#contemplation.get_name_in_caller_scope">get_name_in_caller_scope</a></code></li>
+<li><code><a title="contemplation.how_many_of_my_type_exist" href="#contemplation.how_many_of_my_type_exist">how_many_of_my_type_exist</a></code></li>
+<li><code><a title="contemplation.how_many_of_type_exist" href="#contemplation.how_many_of_type_exist">how_many_of_type_exist</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="contemplation.CallCounter" href="#contemplation.CallCounter">CallCounter</a></code></h4>
+<ul class="">
+<li><code><a title="contemplation.CallCounter.count_calls" href="#contemplation.CallCounter.count_calls">count_calls</a></code></li>
+<li><code><a title="contemplation.CallCounter.get_count" href="#contemplation.CallCounter.get_count">get_count</a></code></li>
+<li><code><a title="contemplation.CallCounter.get_counts" href="#contemplation.CallCounter.get_counts">get_counts</a></code></li>
+<li><code><a title="contemplation.CallCounter.pretty_print_counts" href="#contemplation.CallCounter.pretty_print_counts">pretty_print_counts</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="contemplation.ExecutionTimer" href="#contemplation.ExecutionTimer">ExecutionTimer</a></code></h4>
+<ul class="">
+<li><code><a title="contemplation.ExecutionTimer.get_execution_time" href="#contemplation.ExecutionTimer.get_execution_time">get_execution_time</a></code></li>
+<li><code><a title="contemplation.ExecutionTimer.get_execution_times" href="#contemplation.ExecutionTimer.get_execution_times">get_execution_times</a></code></li>
+<li><code><a title="contemplation.ExecutionTimer.pretty_print_times" href="#contemplation.ExecutionTimer.pretty_print_times">pretty_print_times</a></code></li>
+<li><code><a title="contemplation.ExecutionTimer.time_execution" href="#contemplation.ExecutionTimer.time_execution">time_execution</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="contemplation.FunctionEvent" href="#contemplation.FunctionEvent">FunctionEvent</a></code></h4>
+<ul class="">
+<li><code><a title="contemplation.FunctionEvent.to_dict" href="#contemplation.FunctionEvent.to_dict">to_dict</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="contemplation.FunctionLogger" href="#contemplation.FunctionLogger">FunctionLogger</a></code></h4>
+<ul class="">
+<li><code><a title="contemplation.FunctionLogger.get_logs" href="#contemplation.FunctionLogger.get_logs">get_logs</a></code></li>
+<li><code><a title="contemplation.FunctionLogger.get_logs_by_function_name" href="#contemplation.FunctionLogger.get_logs_by_function_name">get_logs_by_function_name</a></code></li>
+<li><code><a title="contemplation.FunctionLogger.log_function" href="#contemplation.FunctionLogger.log_function">log_function</a></code></li>
+<li><code><a title="contemplation.FunctionLogger.pretty_print_logs" href="#contemplation.FunctionLogger.pretty_print_logs">pretty_print_logs</a></code></li>
+<li><code><a title="contemplation.FunctionLogger.to_dict" href="#contemplation.FunctionLogger.to_dict">to_dict</a></code></li>
+<li><code><a title="contemplation.FunctionLogger.write_jsonl" href="#contemplation.FunctionLogger.write_jsonl">write_jsonl</a></code></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>

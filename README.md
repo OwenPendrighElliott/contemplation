@@ -147,7 +147,8 @@ print(how_many_of_type_exist(MyClass))
 You can use `get_name_in_caller_scope` an instance was assigned to in the scope of the caller.
 
 ```python
-from contemplation import get_name_in_caller_scope, get_name_in_all_scope
+from collections import defaultdict
+from contemplation import get_name_in_caller_scope
 
 class MyClass:
     pass
@@ -172,7 +173,9 @@ my_func2(dd)
 You can use `get_name_in_all_scope` an instance was assigned to in the scope of the caller and all parent scopes. This is very powerful for tracing how a variable made its way somewhere but can also be a bit confusing.
 
 ```python
- def f1(a):
+from contemplation import get_name_in_all_scope
+
+def f1(a):
     print(get_name_in_all_scope(a))
     return get_name_in_all_scope(a)
 
@@ -198,19 +201,6 @@ assert names[0] == "a"
 
 Type introspections are introspections that are performed on types. Currently there the `@type_enforced()` decorator and the `introspect_type` function. 
 
-You can use `introspect_type` to get the actual type of an object. This will recurse through the object and build a type annotation.
-
-```python
-from contemplation.experimental import introspect_type
-
-d = {"a": [1, 2, 3], "b": [4, 5, 6]}
-print(introspect_type(d))
-
-d = {"a": [1, 2, 3], "b": [4, 5, "6"]}
-print(introspect_type(d))
-```
-
-
 The `@type_enforced()` decorator can be used to enforce the type of a function's arguments and return value.
 
 This uses the annotations on the functions to check the types of the arguments against what was received. 
@@ -221,7 +211,7 @@ __Don't use this outside of debugging, deep type checking will check every eleme
 
 ```python
 from typing import Dict, List
-from contemplatio.experimentaln import type_enforced
+from contemplation.experimental import type_enforced
 
 @type_enforced(deep=True)
 def test_func(d: Dict[str, List[int]]) -> int:
@@ -245,7 +235,7 @@ A failed type check will print a detailed specification of the type that was rec
 TypeError: Argument 'd' for function 'test_func' must be of type typing.Dict[str, typing.List[int]], instead type typing.Dict[str, typing.Union[typing.List[typing.Union[int, str]], typing.List[int]]] was passed
 ```
 
-You can also get this type information directly for any object:
+You can also get this type information directly for any object with the `introspect_type` function:
 
 ```python
 from contemplation.experimental import introspect_type
@@ -258,6 +248,12 @@ print(introspect_type(my_dict))
 This will print `typing.Dict[str, typing.List[int]]`.
 
 The type introspection occurs recursively for arbitrarily complex objects.
+
+e.g. 
+```python
+d = {"a": [1, 2, 3], "b": [4, {5}, "6"]}
+print(introspect_type(d))
+```
 
 # Documentation
 
