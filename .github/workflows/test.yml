@@ -37,8 +37,8 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
-    - name: Install Hatch
-      run: pip install --upgrade hatch
+    - name: Install PyTest
+      run: pip install --upgrade pytest
 
     - name: Install Black
       run: pip install --upgrade black
@@ -55,4 +55,4 @@ jobs:
       run: ruff --ignore E501 .
 
     - name: Test
-      run: hatch run cov
+      run: pytest
