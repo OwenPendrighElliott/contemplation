@@ -3,7 +3,7 @@ name = "contemplation"
 version = "0.0.1"
 description = "A small package that provides a number of powerful introspection tools"
 authors = [{ name = "Owen Elliott", email = "none@none.com" }]
-license = "MIT"
+license = { file = "LICENSE" }
 readme = "README.md"
 requires-python = ">=3.7"
 classifiers = [
@@ -21,10 +21,6 @@ Homepage = "https://github.com/OwenPendrighElliott/contemplation"
 [build-system]
 requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
-
-[project.dynamic]
-name = "false"
-version = "false"
 
 [tool.bumpver]
 current_version = "2023.1001-alpha"
