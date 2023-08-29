@@ -30,7 +30,7 @@ def introspect_type(obj: Any) -> Any:
 
     Returns:
         Any: The type annotation of the object
-    
+
     Examples:
         >>> introspect_type({"a": 1, "b": 2})
         typing.Dict[str, int]
@@ -185,10 +185,10 @@ def type_enforced(deep: bool = True):
 
     Args:
         deep (bool, optional): Whether or not the type checking should look at members of the type. Defaults to True.
-    
+
     Raises:
         TypeError: An argument or return value does not match the annotations on the function
-    
+
     Examples:
         >>> @type_enforced
         ... def test_func(a: int, b: str) -> str:
@@ -199,6 +199,7 @@ def type_enforced(deep: bool = True):
         >>> test_func(1, 2)
         TypeError: Argument 'b' for function 'test_func' must be of type <class 'str'>, instead type <class 'int'> was passed
     """
+
     def decorator(func: Callable) -> Callable:
         """Decorator that enforces the types of the arguments and return value of a function
 
