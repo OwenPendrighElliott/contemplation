@@ -24,7 +24,7 @@ def get_name_in_caller_scope(me: object) -> str:
     if names:
         return names[0]
     else:
-        raise ValueError(f"Object not found in caller's local scope")
+        raise ValueError("Object not found in caller's local scope")
 
 
 def get_name_in_all_scope(me: object) -> List[str]:

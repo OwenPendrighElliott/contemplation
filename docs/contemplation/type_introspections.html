@@ -28,7 +28,69 @@
 </summary>
 <pre><code class="python">import inspect
 
-from typing import Callable, Any, get_args, get_origin, Iterable, Generator
+from typing import (
+    Callable,
+    Any,
+    get_args,
+    get_origin,
+    Iterable,
+    Generator,
+    Union,
+    Dict,
+    List,
+    Tuple,
+    Set,
+    FrozenSet,
+)
+
+
+def _make_union(types: List[type]):
+    return Union[tuple(types)]
+
+
+def introspect_type(obj: Any) -&gt; Any:
+    if isinstance(obj, dict):
+        key_types = {introspect_type(key) for key in obj.keys()}
+        value_types = {introspect_type(value) for value in obj.values()}
+        key_type = key_types.pop() if len(key_types) == 1 else _make_union(key_types)
+        value_type = (
+            value_types.pop() if len(value_types) == 1 else _make_union(value_types)
+        )
+        return Dict[key_type, value_type]
+    elif isinstance(obj, list):
+        element_types = {introspect_type(element) for element in obj}
+        element_type = (
+            element_types.pop()
+            if len(element_types) == 1
+            else _make_union(element_types)
+        )
+        return List[element_type]
+    elif isinstance(obj, tuple):
+        element_types = {introspect_type(element) for element in obj}
+        element_type = (
+            element_types.pop()
+            if len(element_types) == 1
+            else _make_union(element_types)
+        )
+        return Tuple[element_type]
+    elif isinstance(obj, set):
+        element_types = {introspect_type(element) for element in obj}
+        element_type = (
+            element_types.pop()
+            if len(element_types) == 1
+            else _make_union(element_types)
+        )
+        return Set[element_type]
+    elif isinstance(obj, frozenset):
+        element_types = {introspect_type(element) for element in obj}
+        element_type = (
+            element_types.pop()
+            if len(element_types) == 1
+            else _make_union(element_types)
+        )
+        return FrozenSet[element_type]
+
+    return type(obj)
 
 
 def _shallow_is_of_type(parameter: object, parameter_type: type) -&gt; bool:
@@ -130,61 +192,66 @@ def _deep_is_of_type(parameter: object, parameter_type: type) -&gt; bool:
     return isinstance(parameter, parameter_type)
 
 
-def type_enforced(func: Callable, deep: bool = True) -&gt; Callable:
-    &#34;&#34;&#34;Decorator that enforces the types of the arguments and return value of a function
+def type_enforced(deep: bool = True):
+    def decorator(func: Callable) -&gt; Callable:
+        &#34;&#34;&#34;Decorator that enforces the types of the arguments and return value of a function
 
-    Args:
-        func (Callable): The function to decorate
-        deep (bool, optional): Whether or not the type checking should look at members of the type. Defaults to True.
+        Args:
+            deep (bool, optional): Whether or not the type checking should look at members of the type. Defaults to True.
 
-    Raises:
-        TypeError: An argument or return value does not match the annotations on the function
-    Returns:
-        Callable: The function to enforce type checking on
+        Raises:
+            TypeError: An argument or return value does not match the annotations on the function
+        Returns:
+            Callable: The function to enforce type checking on
 
-    Examples:
-        &gt;&gt;&gt; @type_enforced
-        ... def test_func(a: int, b: str) -&gt; str:
-        ...     return str(a + int(b))
-        ...
-        &gt;&gt;&gt; test_func(1, &#34;2&#34;)
-        &#34;3&#34;
-        &gt;&gt;&gt; test_func(1, 2)
-        TypeError: Argument &#39;b&#39; for function &#39;test_func&#39; must be of type &lt;class &#39;str&#39;&gt;, instead type &lt;class &#39;int&#39;&gt; was passed
-        &gt;&gt;&gt; test_func(1, &#34;2.0&#34;)
-        TypeError: Return value for function &#39;test_func&#39; must be of type &lt;class &#39;str&#39;&gt;, instead type &lt;class &#39;float&#39;&gt; was returned
-    &#34;&#34;&#34;
-    type_checker = _deep_is_of_type if deep else _shallow_is_of_type
-    signature = inspect.signature(func)
-    parameters = signature.parameters
-    return_annotation = signature.return_annotation
-    return_type = return_annotation if return_annotation is not inspect._empty else None
+        Examples:
+            &gt;&gt;&gt; @type_enforced
+            ... def test_func(a: int, b: str) -&gt; str:
+            ...     return str(a + int(b))
+            ...
+            &gt;&gt;&gt; test_func(1, &#34;2&#34;)
+            &#34;3&#34;
+            &gt;&gt;&gt; test_func(1, 2)
+            TypeError: Argument &#39;b&#39; for function &#39;test_func&#39; must be of type &lt;class &#39;str&#39;&gt;, instead type &lt;class &#39;int&#39;&gt; was passed
+            &gt;&gt;&gt; test_func(1, &#34;2.0&#34;)
+            TypeError: Return value for function &#39;test_func&#39; must be of type &lt;class &#39;str&#39;&gt;, instead type &lt;class &#39;float&#39;&gt; was returned
+        &#34;&#34;&#34;
 
-    def wrapper(*args, **kwargs):
-        for i, (name, parameter) in enumerate(parameters.items()):
-            if parameter.annotation is inspect._empty:
-                continue
-            if i &lt; len(args):
-                if not type_checker(args[i], parameter.annotation):
-                    raise TypeError(
-                        f&#34;Argument &#39;{name}&#39; for function &#39;{func.__name__}&#39; must be of type {parameter.annotation}, instead type {type(args[i])} was passed&#34;
-                    )
-            elif name in kwargs:
-                if not type_checker(kwargs[name], parameter.annotation):
-                    raise TypeError(
-                        f&#34;Argument &#39;{name}&#39; for function &#39;{func.__name__}&#39; must be of type {parameter.annotation}, instead type {type(kwargs[name])} was passed&#34;
-                    )
-        result = func(*args, **kwargs)
+        type_checker = _deep_is_of_type if deep else _shallow_is_of_type
+        signature = inspect.signature(func)
+        parameters = signature.parameters
+        return_annotation = signature.return_annotation
+        return_type = (
+            return_annotation if return_annotation is not inspect._empty else None
+        )
 
-        if parameter.annotation is not inspect._empty and not type_checker(
-            result, return_type
-        ):
-            raise TypeError(
-                f&#34;Return value for function &#39;{func.__name__}&#39; must be of type {return_type}, instead type {type(result)} was returned&#34;
-            )
-        return result
+        def wrapper(*args, **kwargs):
+            for i, (name, parameter) in enumerate(parameters.items()):
+                if parameter.annotation is inspect._empty:
+                    continue
+                if i &lt; len(args):
+                    if not type_checker(args[i], parameter.annotation):
+                        raise TypeError(
+                            f&#34;Argument &#39;{name}&#39; for function &#39;{func.__name__}&#39; must be of type {parameter.annotation}, instead type {introspect_type(args[i])} was passed&#34;
+                        )
+                elif name in kwargs:
+                    if not type_checker(kwargs[name], parameter.annotation):
+                        raise TypeError(
+                            f&#34;Argument &#39;{name}&#39; for function &#39;{func.__name__}&#39; must be of type {parameter.annotation}, instead type {introspect_type(kwargs[name])} was passed&#34;
+                        )
+            result = func(*args, **kwargs)
 
-    return wrapper</code></pre>
+            if parameter.annotation is not inspect._empty and not type_checker(
+                result, return_type
+            ):
+                raise TypeError(
+                    f&#34;Return value for function &#39;{func.__name__}&#39; must be of type {return_type}, instead type {introspect_type(result)} was returned&#34;
+                )
+            return result
+
+        return wrapper
+
+    return decorator</code></pre>
 </details>
 </section>
 <section>
@@ -194,99 +261,129 @@ def type_enforced(func: Callable, deep: bool = True) -&gt; Callable:
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt id="contemplation.type_introspections.type_enforced"><code class="name flex">
-<span>def <span class="ident">type_enforced</span></span>(<span>func: Callable, deep: bool = True) ‑> Callable</span>
+<dt id="contemplation.type_introspections.introspect_type"><code class="name flex">
+<span>def <span class="ident">introspect_type</span></span>(<span>obj: Any) ‑> Any</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Decorator that enforces the types of the arguments and return value of a function</p>
-<h2 id="args">Args</h2>
-<dl>
-<dt><strong><code>func</code></strong> :&ensp;<code>Callable</code></dt>
-<dd>The function to decorate</dd>
-<dt><strong><code>deep</code></strong> :&ensp;<code>bool</code>, optional</dt>
-<dd>Whether or not the type checking should look at members of the type. Defaults to True.</dd>
-</dl>
-<h2 id="raises">Raises</h2>
-<dl>
-<dt><code>TypeError</code></dt>
-<dd>An argument or return value does not match the annotations on the function</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<dl>
-<dt><code>Callable</code></dt>
-<dd>The function to enforce type checking on</dd>
-</dl>
-<h2 id="examples">Examples</h2>
-<pre><code class="language-python-repl">&gt;&gt;&gt; @type_enforced
-... def test_func(a: int, b: str) -&gt; str:
-...     return str(a + int(b))
-...
-&gt;&gt;&gt; test_func(1, &quot;2&quot;)
-&quot;3&quot;
-&gt;&gt;&gt; test_func(1, 2)
-TypeError: Argument 'b' for function 'test_func' must be of type &lt;class 'str'&gt;, instead type &lt;class 'int'&gt; was passed
-&gt;&gt;&gt; test_func(1, &quot;2.0&quot;)
-TypeError: Return value for function 'test_func' must be of type &lt;class 'str'&gt;, instead type &lt;class 'float'&gt; was returned
-</code></pre></div>
+<div class="desc"></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def type_enforced(func: Callable, deep: bool = True) -&gt; Callable:
-    &#34;&#34;&#34;Decorator that enforces the types of the arguments and return value of a function
+<pre><code class="python">def introspect_type(obj: Any) -&gt; Any:
+    if isinstance(obj, dict):
+        key_types = {introspect_type(key) for key in obj.keys()}
+        value_types = {introspect_type(value) for value in obj.values()}
+        key_type = key_types.pop() if len(key_types) == 1 else _make_union(key_types)
+        value_type = (
+            value_types.pop() if len(value_types) == 1 else _make_union(value_types)
+        )
+        return Dict[key_type, value_type]
+    elif isinstance(obj, list):
+        element_types = {introspect_type(element) for element in obj}
+        element_type = (
+            element_types.pop()
+            if len(element_types) == 1
+            else _make_union(element_types)
+        )
+        return List[element_type]
+    elif isinstance(obj, tuple):
+        element_types = {introspect_type(element) for element in obj}
+        element_type = (
+            element_types.pop()
+            if len(element_types) == 1
+            else _make_union(element_types)
+        )
+        return Tuple[element_type]
+    elif isinstance(obj, set):
+        element_types = {introspect_type(element) for element in obj}
+        element_type = (
+            element_types.pop()
+            if len(element_types) == 1
+            else _make_union(element_types)
+        )
+        return Set[element_type]
+    elif isinstance(obj, frozenset):
+        element_types = {introspect_type(element) for element in obj}
+        element_type = (
+            element_types.pop()
+            if len(element_types) == 1
+            else _make_union(element_types)
+        )
+        return FrozenSet[element_type]
 
-    Args:
-        func (Callable): The function to decorate
-        deep (bool, optional): Whether or not the type checking should look at members of the type. Defaults to True.
+    return type(obj)</code></pre>
+</details>
+</dd>
+<dt id="contemplation.type_introspections.type_enforced"><code class="name flex">
+<span>def <span class="ident">type_enforced</span></span>(<span>deep: bool = True)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def type_enforced(deep: bool = True):
+    def decorator(func: Callable) -&gt; Callable:
+        &#34;&#34;&#34;Decorator that enforces the types of the arguments and return value of a function
 
-    Raises:
-        TypeError: An argument or return value does not match the annotations on the function
-    Returns:
-        Callable: The function to enforce type checking on
+        Args:
+            deep (bool, optional): Whether or not the type checking should look at members of the type. Defaults to True.
 
-    Examples:
-        &gt;&gt;&gt; @type_enforced
-        ... def test_func(a: int, b: str) -&gt; str:
-        ...     return str(a + int(b))
-        ...
-        &gt;&gt;&gt; test_func(1, &#34;2&#34;)
-        &#34;3&#34;
-        &gt;&gt;&gt; test_func(1, 2)
-        TypeError: Argument &#39;b&#39; for function &#39;test_func&#39; must be of type &lt;class &#39;str&#39;&gt;, instead type &lt;class &#39;int&#39;&gt; was passed
-        &gt;&gt;&gt; test_func(1, &#34;2.0&#34;)
-        TypeError: Return value for function &#39;test_func&#39; must be of type &lt;class &#39;str&#39;&gt;, instead type &lt;class &#39;float&#39;&gt; was returned
-    &#34;&#34;&#34;
-    type_checker = _deep_is_of_type if deep else _shallow_is_of_type
-    signature = inspect.signature(func)
-    parameters = signature.parameters
-    return_annotation = signature.return_annotation
-    return_type = return_annotation if return_annotation is not inspect._empty else None
+        Raises:
+            TypeError: An argument or return value does not match the annotations on the function
+        Returns:
+            Callable: The function to enforce type checking on
 
-    def wrapper(*args, **kwargs):
-        for i, (name, parameter) in enumerate(parameters.items()):
-            if parameter.annotation is inspect._empty:
-                continue
-            if i &lt; len(args):
-                if not type_checker(args[i], parameter.annotation):
-                    raise TypeError(
-                        f&#34;Argument &#39;{name}&#39; for function &#39;{func.__name__}&#39; must be of type {parameter.annotation}, instead type {type(args[i])} was passed&#34;
-                    )
-            elif name in kwargs:
-                if not type_checker(kwargs[name], parameter.annotation):
-                    raise TypeError(
-                        f&#34;Argument &#39;{name}&#39; for function &#39;{func.__name__}&#39; must be of type {parameter.annotation}, instead type {type(kwargs[name])} was passed&#34;
-                    )
-        result = func(*args, **kwargs)
+        Examples:
+            &gt;&gt;&gt; @type_enforced
+            ... def test_func(a: int, b: str) -&gt; str:
+            ...     return str(a + int(b))
+            ...
+            &gt;&gt;&gt; test_func(1, &#34;2&#34;)
+            &#34;3&#34;
+            &gt;&gt;&gt; test_func(1, 2)
+            TypeError: Argument &#39;b&#39; for function &#39;test_func&#39; must be of type &lt;class &#39;str&#39;&gt;, instead type &lt;class &#39;int&#39;&gt; was passed
+            &gt;&gt;&gt; test_func(1, &#34;2.0&#34;)
+            TypeError: Return value for function &#39;test_func&#39; must be of type &lt;class &#39;str&#39;&gt;, instead type &lt;class &#39;float&#39;&gt; was returned
+        &#34;&#34;&#34;
 
-        if parameter.annotation is not inspect._empty and not type_checker(
-            result, return_type
-        ):
-            raise TypeError(
-                f&#34;Return value for function &#39;{func.__name__}&#39; must be of type {return_type}, instead type {type(result)} was returned&#34;
-            )
-        return result
+        type_checker = _deep_is_of_type if deep else _shallow_is_of_type
+        signature = inspect.signature(func)
+        parameters = signature.parameters
+        return_annotation = signature.return_annotation
+        return_type = (
+            return_annotation if return_annotation is not inspect._empty else None
+        )
 
-    return wrapper</code></pre>
+        def wrapper(*args, **kwargs):
+            for i, (name, parameter) in enumerate(parameters.items()):
+                if parameter.annotation is inspect._empty:
+                    continue
+                if i &lt; len(args):
+                    if not type_checker(args[i], parameter.annotation):
+                        raise TypeError(
+                            f&#34;Argument &#39;{name}&#39; for function &#39;{func.__name__}&#39; must be of type {parameter.annotation}, instead type {introspect_type(args[i])} was passed&#34;
+                        )
+                elif name in kwargs:
+                    if not type_checker(kwargs[name], parameter.annotation):
+                        raise TypeError(
+                            f&#34;Argument &#39;{name}&#39; for function &#39;{func.__name__}&#39; must be of type {parameter.annotation}, instead type {introspect_type(kwargs[name])} was passed&#34;
+                        )
+            result = func(*args, **kwargs)
+
+            if parameter.annotation is not inspect._empty and not type_checker(
+                result, return_type
+            ):
+                raise TypeError(
+                    f&#34;Return value for function &#39;{func.__name__}&#39; must be of type {return_type}, instead type {introspect_type(result)} was returned&#34;
+                )
+            return result
+
+        return wrapper
+
+    return decorator</code></pre>
 </details>
 </dd>
 </dl>
@@ -307,6 +404,7 @@ TypeError: Return value for function 'test_func' must be of type &lt;class 'str'
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
+<li><code><a title="contemplation.type_introspections.introspect_type" href="#contemplation.type_introspections.introspect_type">introspect_type</a></code></li>
 <li><code><a title="contemplation.type_introspections.type_enforced" href="#contemplation.type_introspections.type_enforced">type_enforced</a></code></li>
 </ul>
 </li>

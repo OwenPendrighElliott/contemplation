@@ -30,11 +30,11 @@ def test_how_many_of_type_exist():
     class MyClass:
         pass
 
-    my_class = MyClass()
+    _1 = MyClass()
 
     assert how_many_of_type_exist(MyClass) == 1
 
-    my_class_v2 = MyClass()
+    _2 = MyClass()
 
     assert how_many_of_type_exist(MyClass) == 2
 

@@ -1,7 +1,11 @@
 import pytest
 import typing
 from typing import List, Dict, Union
-from contemplation import _shallow_is_of_type, _deep_is_of_type, type_enforced
+from contemplation.experimental import (
+    _shallow_is_of_type,
+    _deep_is_of_type,
+    type_enforced,
+)
 
 
 def test_native_shallow_is_of_type_int():
@@ -147,7 +151,7 @@ def test_typing_shallow_is_of_type_list():
     assert _shallow_is_of_type(x, typing.Union[typing.List, typing.Tuple])
 
 
-def test_typing_shallow_is_of_type_tuple():
+def test_typing_shallow_is_of_type_tuple_union():
     xt = (1, 2, 3)
     assert _shallow_is_of_type(xt, typing.Union[typing.List, typing.Tuple])
 

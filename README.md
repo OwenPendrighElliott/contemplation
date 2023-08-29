@@ -1,5 +1,7 @@
 # 🤔 Contemplation
 
+[![test](https://github.com/owenpendrighelliott/contemplation/actions/workflows/test.yml/badge.svg)](https://github.com/owenpendrighelliott/contemplation/actions/workflows/test.yml)
+
 Novel and powerful introspection utilities for Python.
 
 Contemplation is a library for introspection of Python code. It provides a number of introspection utilities that are not available in the standard library. This library is designed to be used for debugging and analysing code.
@@ -190,14 +192,16 @@ assert names[1] == "b"
 assert names[0] == "a"
 ```
 
-### Type Introspections
+### Experimental Type Introspections
+
+*These introspections are experimental and may change in the future, additional there are caveats to their use and a number of edge cases that may not be covered at the moment.*
 
 Type introspections are introspections that are performed on types. Currently there the `@type_enforced()` decorator and the `introspect_type` function. 
 
 You can use `introspect_type` to get the actual type of an object. This will recurse through the object and build a type annotation.
 
 ```python
-from contemplation import introspect_type
+from contemplation.experimental import introspect_type
 
 d = {"a": [1, 2, 3], "b": [4, 5, 6]}
 print(introspect_type(d))
@@ -217,7 +221,7 @@ __Don't use this outside of debugging, deep type checking will check every eleme
 
 ```python
 from typing import Dict, List
-from contemplation import type_enforced
+from contemplatio.experimentaln import type_enforced
 
 @type_enforced(deep=True)
 def test_func(d: Dict[str, List[int]]) -> int:
@@ -244,7 +248,7 @@ TypeError: Argument 'd' for function 'test_func' must be of type typing.Dict[str
 You can also get this type information directly for any object:
 
 ```python
-from contemplation import introspect_type
+from contemplation.experimental import introspect_type
 
 my_dict = {"a": [1, 2, 3], "b": [4, 5, 6]}
 
