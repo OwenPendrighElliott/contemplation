@@ -1,6 +1,6 @@
 [project]
 name = "contemplation"
-version = "0.0.1"
+version = "0.0.2"
 description = "A small package that provides a number of powerful introspection tools"
 authors = [{ name = "Owen Elliott", email = "none@none.com" }]
 license = { file = "LICENSE" }
@@ -22,15 +22,3 @@ Homepage = "https://github.com/OwenPendrighElliott/contemplation"
 requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
-[tool.bumpver]
-current_version = "2023.1001-alpha"
-version_pattern = "YYYY.BUILD[-TAG]"
-commit_message = "bump version {old_version} -> {new_version}"
-tag_message = "{new_version}"
-commit = true
-tag = true
-push = true
-
-[tool.bumpver.file_patterns]
-"pyproject.toml" = ['current_version = "{version}"']
-"README.md" = ["{version}", "{pep440_version}"]

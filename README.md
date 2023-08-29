@@ -10,6 +10,19 @@ Contemplation is a library for introspection of Python code. It provides a numbe
 pip install contemplation
 ```
 
+## Table of Contents
++ [Documentation](#documentation)
++ [Introspections](#introspections)
+    + [Execution Introspections](#execution-introspections)
+    + [Instance Introspections](#instance-introspections)
+    + [Experimental Type Introspections](#experimental-type-introspections)
++ [Generating Documentation](#generating-documentation)
+
+## Documentation
+
+[Find the documentation here](https://owenpendrighelliott.github.io/contemplation/).
+
+
 ## Introspections
 
 There are three categories of introspection provided in this package:
@@ -17,16 +30,22 @@ There are three categories of introspection provided in this package:
 + Instance Introspections
 + Type Introspections
   
-Exection introspections are introspections that are performed on the execution of code. Instance introspections are introspections that are performed on instances of objects. Type introspections are introspections that are performed on types. There are detailed below.
+Execution introspections are introspections that are performed on the execution of code. 
+
+Instance introspections are introspections that are performed on instances of objects. 
+
+Type introspections are introspections that are performed on types. 
+
+These are detailed below.
 
 ### Execution Introspections
 
-The follow execution introspections are provided:
-+ CallCounter - counts the number of times functions registered to it are called
-+ ExecutionTimer - times the execution of functions registered to it
-+ FunctionLogger - logs the times, arguments, and return values of functions registered to it
+The following execution introspections are provided:
++ `CallCounter` - counts the number of times functions registered to it are called
++ `ExecutionTimer` - times the execution of functions registered to it
++ `FunctionLogger` - logs the times, arguments, and return values of functions registered to it
 
-These class all act in very much the same way, they use function metadata to track the execution of functions. For example, you can time the execution of a function by wrapping it in an `ExecutionTimer` instance.
+These classes all act in very much the same way, they use function metadata to track the execution of functions. For example, you can time the execution of a function by wrapping it in an `ExecutionTimer` instance.
 
 ```python
 import time
@@ -123,10 +142,10 @@ for event in function_logger:
 ### Instance Introspections
 
 Instance introspections are introspections that are performed on instances of objects. The following instance introspections are provided, they are poised as questions:
-+ how_many_of_my_type_exist - how many instances of a type exist given an instance
-+ how_many_of_type_exist - how many instances of a type exist given a type
-+ get_name_in_caller_scope - get the name an instance was assigned to in the scope of the caller
-+ get_name_in_all_scope - get the name an instance was assigned to in the scope of the caller and all parent scopes
++ `how_many_of_my_type_exist` - how many instances of a type exist given an instance
++ `how_many_of_type_exist` - how many instances of a type exist given a type
++ `get_name_in_caller_scope` - get the name an instance was assigned to in the scope of the caller
++ `get_name_in_all_scope` - get the name an instance was assigned to in the scope of the caller and all parent scopes
 
 These introspections are useful for debugging and analysing code. For example, you can use `how_many_of_my_type_exist` and `how_many_of_type_exist` to find out how many instances of a type exist given an instance.
 
@@ -255,7 +274,7 @@ d = {"a": [1, 2, 3], "b": [4, {5}, "6"]}
 print(introspect_type(d))
 ```
 
-# Documentation
+## Generating Documentation
 
 Documentation is located at `docs/index.html`.
 

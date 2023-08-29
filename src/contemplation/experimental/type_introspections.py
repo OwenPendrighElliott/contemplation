@@ -17,10 +17,26 @@ from typing import (
 
 
 def _make_union(types: List[type]):
+    # VSCode hates this but the Union class actually has code
+    # specifically to handle a tuple of types
     return Union[tuple(types)]
 
 
 def introspect_type(obj: Any) -> Any:
+    """Get the type of an object, including the types of its members
+
+    Args:
+        obj (Any): The object to get the type annotation of
+
+    Returns:
+        Any: The type annotation of the object
+    
+    Examples:
+        >>> introspect_type({"a": 1, "b": 2})
+        typing.Dict[str, int]
+        >>> introspect_type([{"a": {1,2,3}}, {"b": {4,5,6}}])
+        typing.List[typing.Dict[str, typing.Set[int]]]
+    """
     if isinstance(obj, dict):
         key_types = {introspect_type(key) for key in obj.keys()}
         value_types = {introspect_type(value) for value in obj.values()}
@@ -165,6 +181,24 @@ def _deep_is_of_type(parameter: object, parameter_type: type) -> bool:
 
 
 def type_enforced(deep: bool = True):
+    """Decorator that enforces the types of the arguments and return value of a function
+
+    Args:
+        deep (bool, optional): Whether or not the type checking should look at members of the type. Defaults to True.
+    
+    Raises:
+        TypeError: An argument or return value does not match the annotations on the function
+    
+    Examples:
+        >>> @type_enforced
+        ... def test_func(a: int, b: str) -> str:
+        ...     return str(a + int(b))
+        ...
+        >>> test_func(1, "2")
+        "3"
+        >>> test_func(1, 2)
+        TypeError: Argument 'b' for function 'test_func' must be of type <class 'str'>, instead type <class 'int'> was passed
+    """
     def decorator(func: Callable) -> Callable:
         """Decorator that enforces the types of the arguments and return value of a function
 
